@@ -1,0 +1,5 @@
+package scalafixdocs
+
+object ExampleDisableSyntax {
+
+}

@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>How to Scalafix My Code</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="keywords" content="scalafix scalameta semanticdb scala">
+    <meta name="description" content="How to Scalafix My Code">
+
+    <style type="text/css">
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body {
+        font-family: 'Droid Serif';
+      }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: 400;
+        margin-bottom: 0;
+      }
+      .remark-slide-content h1 { font-size: 4em; }
+      .remark-slide-content h2 { font-size: 2.5em; }
+      .remark-slide-content h3 { font-size: 1.6em; }
+      .footnote {
+        position: absolute;
+        bottom: 4em;
+      }
+      .footnote2 {
+        position: absolute;
+        bottom: 2em;
+      }
+      li p { line-height: 1.25em; }
+      .red { color: #fa0000; }
+      .large { font-size: 2em; }
+      a, a > code {
+        color: rgb(249, 38, 114);
+        text-decoration: none;
+      }
+      code {
+        background: #e7e8e2;
+        border-radius: 5px;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .remark-code-line-highlighted     { background-color: #373832; }
+      .pull-left {
+        float: left;
+        width: 47%;
+      }
+      .pull-right {
+        float: right;
+        width: 47%;
+      }
+      .pull-right ~ p {
+        clear: both;
+      }
+      #slideshow .slide .content code {
+        font-size: 0.8em;
+      }
+      #slideshow .slide .content pre code {
+        font-size: 0.9em;
+        padding: 15px;
+      }
+      .inverse {
+        background: #012908ec;
+        color: #f3f3f3;
+        text-shadow: 0 0 20px #333;
+      }
+      .inverse h1, .inverse h2 {
+        color: #f3f3f3;
+        line-height: 0.8em;
+      }
+
+      /* Slide-specific styling */
+      #slide-inverse .footnote {
+        bottom: 12px;
+        left: 20px;
+      }
+      #slide-how .slides {
+        font-size: 0.9em;
+        position: absolute;
+        top:  151px;
+        right: 140px;
+      }
+      #slide-how .slides h3 {
+        margin-top: 0.2em;
+      }
+      #slide-how .slides .first, #slide-how .slides .second {
+        padding: 1px 20px;
+        height: 90px;
+        width: 120px;
+        -moz-box-shadow: 0 0 10px #777;
+        -webkit-box-shadow: 0 0 10px #777;
+        box-shadow: 0 0 10px #777;
+      }
+      #slide-how .slides .first {
+        background: #fff;
+        position: absolute;
+        top: 20%;
+        left: 20%;
+        z-index: 1;
+      }
+      #slide-how .slides .second {
+        position: relative;
+        background: #fff;
+        z-index: 0;
+      }
+
+      /* Two-column layout */
+      .left-column {
+        color: #777;
+        width: 20%;
+        height: 92%;
+        float: left;
+      }
+      .left-column h2:last-of-type, .left-column h3:last-child {
+        color: #000;
+      }
+      .right-column {
+        width: 75%;
+        float: right;
+        padding-top: 1em;
+      }
+
+      /* Two-column layout 50/50 */
+      .left-column-50 {
+        width: 49%;
+        float: left;
+      }
+      .right-column-50 {
+        width: 49%;
+        float: right;
+      }
+
+      .tiny-font {
+        font-size: 0.75em
+      }
+
+      .mini-font {
+        font-size: 1em
+      }
+
+      .medium-font {
+        font-size: 1.25em
+      }
+
+      .large-font {
+        font-size: 1.5em
+      }
+
+      .xlarge-font {
+        font-size: 1.75em
+      }
+
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      tr:nth-child(0) {
+        background-color: #dddddd;
+      }
+    </style>
+  </head>
+  <body>
+
+<textarea id="source">
+
+name: main-template
+layout: true
+class: left, top, inverse
+
+---
+
+class: center
+
+<br/>
+<br/>
+<br/>
+# How to Scalafix My Code
+
+<br/>
+<br/>
+<br/>
+<br/>
+### &copy; 2019 Hermann Hueck
+<br/>
+https://github.com/hermannhueck/howto-scalafix-my-code
+
+---
+
+<br/>
+# Abstract
+<br/>
+
+<br/>
+This presentation with code examples gives an introduction to Scalafix.
+
+It has been developed with Scala 2.12.8, sbt 1.2.8 and scalafix 0.9.5.
+
+<br/>
+<br/>
+See Scalafix documentation at:<br/>
+https://scalacenter.github.io/scalafix/
+
+---
+
+<br/>
+# Agenda
+<br/>
+
+<br/>
+1. [What is Scalafix?](#what_is_scalafix)
+1. [Getting Started](#getting_started)
+1. [.scalafix.conf](#scalafix_conf)
+1. [Suppressing Rules in Code](#suppressing_rules)
+1. [*scalafix* Shell Command](#scalafix_shell_command)
+1. [Built-in Rules](#builtin_rules)
+1. [Running (compiled) Custom Rules](#running_custom_rules)
+1. [Running Custom Rules from Source Code](#running_custom_rules_from_source)
+1. [Resources](#resources)
+
+---
+
+class: middle, center
+name: what_is_scalafix
+
+# 1. What is Scalafix?
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+---
+
+<br/>
+<br/>
+## What is Scalafix? (1/3)
+<br/>
+<br/>
+
+--
+
+<br/>
+.center[
+## Scala code => Scala code
+]
+
+--
+
+<br/>
+.center[
+## Scala code => Seq[LintMessage]
+]
+
+---
+
+<br/>
+<br/>
+## What is Scalafix? (2/3)
+<br/>
+<br/>
+
+<br/>
+- ### Tool to rewrite/patch Scala code according to rewrite rules.
+
+- ### Tool to lint/check Scala code according to linter rules.
+
+---
+
+<br/>
+## What is Scalafix? (3/3) - more details
+<br/>
+
+- Based on *Scalameta* &nbsp;and *SemanticDB*.
+
+- Scalafix integrates nicely into sbt (sbt plugin).
+
+- Scalafix can also be invoked from the shell prompt.
+
+- The rules to apply can be specified interactively at the (sbt or shell) prompt or in a configuration file.
+
+- Scalafix rules are either <u>syntactic</u> or <u>semantic</u>.
+
+- <u>Syntactic</u> rules work out of the box (when the scalafix plugin is installed).
+  They don't need compilation.
+
+- <u>Semantic</u> rules need information from SemanticDB.
+  They require the activation of the *scalafixSemanticdb* compiler plugin (and an additional scalac option).
+
+---
+
+class: middle, center
+name: getting_started
+
+# 2. Getting Started
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+.footnote[
+  &nbsp; &nbsp; &nbsp; Scalafix User Guide:
+]
+.footnote2[
+  &nbsp; &nbsp; &nbsp; https://scalacenter.github.io/scalafix/docs/users/installation.html
+]
+
+---
+
+<br/>
+<br/>
+## Scalafix - sbt plugin
+<br/>
+<br/>
+
+
+### project/plugins.sbt
+
+```scala
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.5")
+```
+
+<br/>
+- With this plugin syntactic rules work out of the box.
+
+---
+
+## Syntactic rule *ProcedureSyntax*
+<br/>
+
+```scala
+// src/main/scala/tofix/HelloApp.scala
+package tofix
+
+import scala.util.Try    // <<---
+
+object HelloApp extends App {
+    
+  def hello() {    // <<---
+    println("hello")
+  }
+
+  hello()
+}
+```
+
+--
+
+<br/>
+This code has two problems:
+
+- Ununsed import
+
+- Discouraged procedure syntax
+
+---
+
+## Check code against rule *ProcedureSyntax*
+<br/>
+
+... without changing it:
+
+```html
+sbt:howto-scalafix-my-code> scalafix --check --stdout ProcedureSyntax
+--- .../howto-scalafix-my-code/src/main/scala/tofix/HelloApp.scala
++++ <expected fix>
+@@ -4,7 +4,7 @@
+ 
+ object HelloApp extends App {
+     
+-    def hello() {    // <<---
++    def hello(): Unit = {    // <<---
+         println("hello")
+     }
+ 
+[error] (Compile / scalafix) scalafix.sbt.ScalafixFailed: TestError
+```
+
+<br>
+- *--check*: lets scalafix fail, if it finds procedure syntax in a source file
+
+- *--stdout*: prints a patch to stdout without applying it to the file
+
+---
+
+## Fix code against rule *ProcedureSyntax*
+<br/>
+
+... modifying the source file(s):
+
+```html
+sbt:howto-scalafix-my-code> scalafix ProcedureSyntax
+[success] Total time: 0 s, completed 04.08.2019, 16:45:25
+```
+
+--
+
+<br/>
+After the application of the patch procedure syntax has been replaced by regular method syntax:
+
+```scala
+// src/main/scala/tofix/HelloApp.scala
+package tofix
+
+import scala.util.Try    // <<---
+
+object HelloApp extends App {
+    
+  def hello(): Unit = {    // <<---
+    println("hello")
+  }
+
+  hello()
+}
+```
+
+---
+
+## Enable semantic rules
+<br/>
+
+### build.sbt
+
+```scala
+addCompilerPlugin(scalafixSemanticdb)
+scalacOptions += "-Yrangepos"   // use range positions for syntax trees
+```
+
+<br/>
+<br/>
+The compiler generates a *.semanticdb* file for each source file.
+
+```html
+howto-scalafix-my-code $ find . -name '*.semanticdb'
+./target/scala-2.12/classes/META-INF/semanticdb/src/main/..
+                                    ..scala/tofix/HelloApp.scala.semanticdb
+...
+```
+
+--
+
+<br/>
+*.semanticdb* files contain information about the AST (abstract syntax tree) in binary protobuf format.
+
+---
+
+<br/>
+## Semantic rule *RemoveUnused*
+<br/>
+<br/>
+
+- Some rules need rule-specific scalac options.
+
+- *RemoveUnused* needs *-Ywarn-unused*.
+
+### build.sbt
+
+```scala
+scalacOptions += "-Ywarn-unused"
+```
+
+---
+
+## Check code against rule *RemoveUnused*
+<br/>
+
+... without changing it:
+
+```html
+sbt:howto-scalafix-my-code> scalafix --check --stdout RemoveUnused
+--- .../howto-scalafix-my-code/src/main/scala/tofix/HelloApp.scala
++++ <expected fix>
+@@ -1,6 +1,5 @@
+ package tofix
+ 
+-import scala.util.Try    // <<---
+ 
+ object HelloApp extends App {
+     
+[error] (Compile / scalafix) scalafix.sbt.ScalafixFailed: TestError
+[error] Total time: 0 s, completed 04.08.2019, 17:53:06
+```
+
+---
+
+## Fix code against rule *RemoveUnused*
+<br/>
+
+... modifying the source file(s):
+
+```html
+sbt:howto-scalafix-my-code> scalafix RemoveUnused
+[success] Total time: 1 s, completed 04.08.2019, 18:02:20
+```
+
+--
+
+<br/>
+After the application of the patch the unused import is gone:
+
+```scala
+// src/main/scala/tofix/HelloApp.scala
+package tofix
+
+    // <<---
+
+object HelloApp extends App {
+    
+  def hello(): Unit = {    // <<---
+    println("hello")
+  }
+
+  hello()
+}
+```
+
+---
+
+class: middle, center
+name: scalafix_conf
+
+# 3. &nbsp;*.scalafix.conf*
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+.footnote[
+  &nbsp; &nbsp; &nbsp; https://scalacenter.github.io/scalafix/docs/users/configuration.html
+]
+
+---
+
+## *.scalafix.conf*
+<br/>
+
+- In the previous examples we specified the rules at the sbt prompt.
+
+- Instead we can use a config file in HOCON syntax ( https://github.com/lightbend/config ).
+
+- Default file: *.scalafix.conf* &nbsp;in the project root directory
+
+--
+
+```html
+// .scalafix.conf
+
+rules = [
+  ProcedureSyntax
+  RemoveUnused
+]
+```
+
+--
+
+<br/>
+Rules no longer specified at the sbt prompt:
+
+```html
+sbt:howto-scalafix-my-code> scalafix --check --stdout
+--- .../howto-scalafix-my-code/src/main/scala/tofix/HelloApp.scala
++++ <expected fix>
+...
+```
+
+---
+
+<br/>
+## Disable checking unused imports
+<br/>
+<br/>
+
+```html
+// .scalafix.conf
+
+rules = [
+  ProcedureSyntax
+  RemoveUnused
+]
+
+RemoveUnused.imports = false // ignore unused imports
+```
+
+Scalafix will check for unused local definitions and unused private members, but will skip unused imports.
+
+--
+
+<br/>
+For more information see:
+
+https://scalacenter.github.io/scalafix/docs/rules/RemoveUnused.html
+
+---
+
+## Rule *DisableSyntax*
+<br/>
+
+- The *RemoveUnused* rule was opt-out by default. If enabled all sub rules
+  (*RemoveUnused.import*, *RemoveUnused.privates*. *RemoveUnused.locals*) are also enabled.
+
+  - Sub rules must be disabled explicitly.
+
+- The *DisableSyntax* rule is opt-in by default. If enabled all sub rules are still disabled.
+
+  - Sub rules must be enabled explicitly.
+
+--
+
+```html
+// .scalafix.conf
+
+rules = [
+  ProcedureSyntax
+  RemoveUnused
+  DisableSyntax
+]
+
+RemoveUnused.imports = false // ignore unused imports
+DisableSyntax.noThrows = true // disallow throwing exceptions
+```
+
+---
+
+## Check rule *DisableSyntax*
+<br/>
+
+```html
+sbt:howto-scalafix-my-code> scalafix --check --stdout
+[info] Running scalafix ...
+...
+[error] .../tofix/Throwing.scala:14:7: error: [DisableSyntax.throw] exceptions should be avoided, consider encoding the error in the return type instead
+[error]       throw new IllegalArgumentException("string is empty")
+[error]       ^^^^^
+[error] .../tofix/Throwing.scala:18:22: error: [DisableSyntax.throw] exceptions should be avoided, consider encoding the error in the return type instead
+[error]         case None => throw new NumberFormatException("not an Int")
+[error]                      ^^^^^
+[error] .../tofix/Throwing.scala:23:9: error: [DisableSyntax.throw] exceptions should be avoided, consider encoding the error in the return type instead
+[error]         throw new RuntimeException("negative Int")
+[error]         ^^^^^
+[error] .../tofix/Throwing.scala:31:5: error: [DisableSyntax.throw] exceptions should be avoided, consider encoding the error in the return type instead
+[error]     throw new IllegalArgumentException("no args specified")
+[error]     ^^^^^
+[error] (Compile / scalafix) scalafix.sbt.ScalafixFailed: TestError LinterError
+```
+
+<br/>
+Four code locations in *Throwing.scala* have *throw* statements. Scalafix conplains about all of them.
+
+Scalafix does not provide patches in this case. These problems cannot be fixed automatically by the tool.
+They need manual redesign of the code.
+
+---
+
+class: middle, center
+name: suppressing_rules
+
+# 4. Suppressing Rules in Code
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+.footnote[
+  &nbsp; &nbsp; &nbsp; https://scalacenter.github.io/scalafix/docs/users/suppression.html
+]
+
+---
+
+<br/>
+## Suppress rules using annotations
+<br/>
+<br/>
+
+Suppress scalafix check with annotation *@SuppressWarnings*:
+
+```scala
+// src/main/scala/tofix/Throwing.scala
+...
+@SuppressWarnings(Array("scalafix:DisableSyntax.throw"))
+def run(args: List[String]) =
+  if (args.length == 0) {
+    throw new IllegalArgumentException("no args specified")
+  } else {
+    checkNumber(args.head)
+  }
+```
+
+<br/>
+- This suppresses the rule *DisableSyntax.noThrows* for the annotated method, class or object.
+
+- *@SuppressWarnings(Array("all"))* suppresses all rules for the annotated method, class or object.
+
+---
+
+<br/>
+## Suppress rule using *scalafix:ok*
+<br/>
+<br/>
+
+Suppress scalafix check for a code location with comment *scalafix:ok*:
+
+```scala
+// src/main/scala/tofix/Throwing.scala
+...
+  if (string.isEmpty()) {
+    throw new IllegalArgumentException("string is empty") // scalafix:ok
+  } else {
+    ...
+```
+
+--
+
+<br/>
+- The *scalafix:ok* comment can be placed <u>after</u> the expression to disable.
+
+- The comment can also be placed <u>before</u> the expression to disable.
+
+---
+
+<br/>
+## Suppress code regions using *scalafix:off* &nbsp;and *scalafix:on*
+<br/>
+<br/>
+
+Suppress scalafix for a code region:
+
+```scala
+// src/main/scala/tofix/Throwing.scala
+...
+  // scalafix:off
+  val num = string.toIntOption match {
+    case None => throw new NumberFormatException("not an Int")
+    case Some(int) => int
+  }
+
+  if (num < 0) {
+    throw new RuntimeException("negative Int")
+  }
+  // scalafix:on
+```
+
+---
+
+class: middle, center
+name: scalafix_cli
+
+# 5. *scalafix* CLI
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+.footnote[
+  &nbsp; &nbsp; &nbsp; https://scalacenter.github.io/scalafix/docs/users/installation.html#command-line
+]
+
+---
+
+## *scalafix* CLI
+<br/>
+
+- can be installed with *coursier*
+
+- Install *coursier* on your system. See: https://get-coursier.io/docs/cli-overview
+
+- Install *scalafix* (e.g. to your *~/bin* directory):
+
+<br/>
+```html
+# adjust scala version and scalafix version as needed
+
+coursier bootstrap ch.epfl.scala:scalafix-cli_2.12.8:0.9.5 \
+                               -f --main scalafix.cli.Cli -o ~/bin/scalafix
+
+./scalafix --version # Should say 0.9.5
+./scalafix --help # prints a long list of flags
+```
+<br/>
+
+- Hint: Use flag *--scalac-options* to set the *scalacOptions* you normally set in your *build.sbt*.
+
+---
+
+## Using CLI ...
+... to check *HelloApp.scala*
+
+<br/>
+```html
+howto-scalafix-my-code $ \
+  scalafix \
+    --check # only check, don't fix \
+    --stdout # write patch to stdout \
+    --scalac-options -Yrangepos # scalac-option: range positions for syntax trees \
+    --scalac-options -Ywarn-unused # scalac-option: enable 'unused' warnings \
+    --auto-classpath # automatically scan for directories with META-INF/semanticdb \
+    --files src/main/scala/tofix/HelloApp.scala # files to fix  \
+    --rules RemoveUnused ProcedureSyntax # rules to apply
+
+--- .../howto-scalafix-my-code/src/main/scala/tofix/HelloApp.scala
++++ <expected fix>
+@@ -1,7 +1,6 @@
+ package tofix
++    // <<---
+ 
+-import scala.util.Try    // <<---
+-
+ object HelloApp extends App {
+     
+     def hello() {    // <<---
+```
+
+(assuming there is no *.scalafix.conf* &nbsp;in the current working directory)
+
+---
+
+class: middle, center
+name: builtin_rules
+
+# 6. Built-in Rules
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+.footnote[
+  &nbsp; &nbsp; &nbsp; https://scalacenter.github.io/scalafix/docs/rules/overview.html
+]
+
+---
+
+<br/>
+## Built-in rules - <u>syntactic</u> and <u>semantic</u> rules
+<br/>
+
+Scalafix comes with a small set of built-in rules.<br/>
+Rules are either <u>syntactic</u> or <u>semantic</u>.
+<br/>
+<br/>
+
+- <u>**Syntactic**</u>: the rule can run directly on source code without compilation.
+  Syntactic rules are simple to run but they can only do limited code analysis
+  since they do not have access to information such as symbols and types.
+
+- <u>**Semantic**</u>: the rule requires input sources to be compiled beforehand with the Scala compiler
+  and the SemanticDB compiler plugin enabled. Semantic rules are more complicated to run
+  but they can do more advanced code analysis based on symbols and types.
+
+---
+
+<br/>
+## Built-in <u>semantic</u> rules - overview
+<br/>
+<br/>
+
+<table>
+  <tr> <th><u>Name</u></th><th><u>Description</u></th> </tr>
+  <tr> <td>RemoveUnused</td><td>Removes unused imports and terms that reported by the compiler under -Ywarn-unused</td> </tr>
+  <tr> <td>NoAutoTupling</td><td>Inserts explicit tuples for adapted argument lists for compatibility with -Yno-adapted-args</td> </tr>
+</table>
+
+---
+
+<br/>
+## Built-in <u>syntactic</u> rules - overview
+<br/>
+<br/>
+
+<table>
+  <tr> <th><u>Name</u></th><th><u>Description</u></th> </tr>
+  <tr> <td>ProcedureSyntax</td><td>Replaces deprecated procedure syntax with explicit ': Unit ='</td> </tr>
+  <tr> <td>NoValInForComprehension</td><td>Removes deprecated val inside for-comprehension binders</td> </tr>
+  <tr> <td>LeakingImplicitClassVal</td><td>Adds 'private' to val parameters of implicit value classes</td> </tr>
+  <tr> <td>DisableSyntax</td><td>	Reports an error for disabled features such as var or XML literals</td> </tr>
+</table>
+
+---
+
+## Semantic rule *RemoveUnused*
+<br/>
+
+- Enable the Scala compiler option *-Ywarn-unused*. sbt: *scalacOptions += "-Ywarn-unused"*
+
+- Disable *-Xfatal-warnings*. This is required so the compiler warnings do not fail the build before running Scalafix.
+
+<br/>
+
+Configuration and Defaults:
+
+<table>
+  <tr> <th><u>Name</u></th><th><u>Type</u></th><th><u>Default</u></th><th><u>Description</u></th> </tr>
+  <tr> <td>RemoveUnused.imports</td><td>Boolean</td><td>true</td><td>Remove unused imports</td> </tr>
+  <tr> <td>RemoveUnused.privates</td><td>Boolean</td><td>true</td><td>Remove unused private members</td> </tr>
+  <tr> <td>RemoveUnused.locals</td><td>Boolean</td><td>true</td><td>Remove unused local definitions</td> </tr>
+</table>
+
+.footnote2[
+https://scalacenter.github.io/scalafix/docs/rules/RemoveUnused.html
+]
+
+---
+
+## Semantic rule *NoAutoTupling*
+<br/>
+
+- Enable the Scala compiler option *-Ywarn-adapted-args*. sbt: *scalacOptions += "-Ywarn-adapted-args"*
+
+- Disable *-Xfatal-warnings*. This is required so the compiler warnings do not fail the build before running Scalafix.
+
+<br/>
+
+Configuration and Defaults:
+
+*NoAutoTupling* has no sub-rules.
+
+.footnote2[
+https://scalacenter.github.io/scalafix/docs/rules/NoAutoTupling.html
+]
+
+---
+
+## Syntactic rule *ProcedureSyntax*
+<br/>
+
+"Procedure syntax" is a deprecated Scala feature that allows methods to leave out the result type
+and assignment character =. This rule replaces procedure syntax with an explicit : Unit result type
+and adds the = character.
+
+We've seen this in the "Getting Started" section.
+
+<br/>
+
+Configuration and Defaults:
+
+*ProcedureSyntax* has no sub-rules.
+
+.footnote2[
+https://scalacenter.github.io/scalafix/docs/rules/ProcedureSyntax.html
+]
+
+---
+
+## Syntactic rule *NoValInForComprehension*
+<br/>
+
+Removes *val* keyword from definitions in for-comprehension, e.g. here:
+
+```scala
+  for {
+    n <- List(1, 2, 3)
+    val inc = n + 1 // <<--- 'val' deprecated in for comprehension
+  } yield inc
+```
+
+<br/>
+
+Configuration and Defaults:
+
+*NoValInForComprehension* has no sub-rules.
+
+.footnote2[
+https://scalacenter.github.io/scalafix/docs/rules/NoValInForComprehension.html
+]
+
+---
+
+## Syntactic rule *LeakingImplicitClassVal*
+<br/>
+
+Non-private val fields of implicit classes leak as publicly accessible extension methods.
+This rule adds the private access modifier on the field of implicit value classes in order to prevent direct access.
+
+```scala
+  implicit class XtensionVal(val str: String) extends AnyVal { // <<--- str should be private
+    def doubled: String = str + str
+  }
+      
+  "message".str // compiles, but shouldn't
+```
+
+<br/>
+
+Configuration and Defaults:
+
+*LeakingImplicitClassVal* has no sub-rules.
+
+.footnote2[
+https://scalacenter.github.io/scalafix/docs/rules/LeakingImplicitClassVal.html
+]
+
+---
+
+<br/>
+## Syntactic rule *DisableSyntax*
+<br/>
+
+This rules allows you to disable certain syntax features which are legal Scala but discouraged
+such as *asInstanceOf*, *null*s, *throw*ing exceptions etc.
+
+Merely enabling this rule disables nothing. All sub-rules are false by default.
+Additionally you have to enable the respective sub-rule you are interested in.
+
+We've seen this with the sub-rule *DisableSyntax.noThrows* in the "Getting Started" section.
+
+<br/>
+
+Configuration and Defaults: see next slide
+
+.footnote2[
+https://scalacenter.github.io/scalafix/docs/rules/DisableSyntax.html
+]
+
+---
+
+<table class="tiny-font">
+  <tr> <th><u>Sub-Rule</u></th><th><u>Type</u></th><th><u>Default</u></th><th><u>Disallowed Syntax</u></th> </tr>
+  <tr> <td>noVars</td><td>Boolean</td><td>false</td><td>Usage of vars</td> </tr>
+  <tr> <td>noThrows</td><td>Boolean</td><td>false</td><td>Usage of throws</td> </tr>
+  <tr> <td>noNulls</td><td>Boolean</td><td>false</td><td>Usage of null</td> </tr>
+  <tr> <td>noReturns</td><td>Boolean</td><td>false</td><td>Usage of return</td> </tr>
+  <tr> <td>noWhileLoops</td><td>Boolean</td><td>false</td><td>Usage of while loops</td> </tr>
+  <tr> <td>noAsInstanceOf</td><td>Boolean</td><td>false</td><td>Usage of asInstanceOf[T]</td> </tr>
+  <tr> <td>noIsInstanceOf</td><td>Boolean</td><td>false</td><td>Usage of isInstanceOf[T]</td> </tr>
+  <tr> <td>noXml</td><td>Boolean</td><td>false</td><td>Usage of XML literals</td> </tr>
+  <tr> <td>noDefaultArgs</td><td>Boolean</td><td>false</td><td>Usage of method params with default args</td> </tr>
+  <tr> <td>noFinalVal</td><td>Boolean</td><td>false</td><td>Usage of 'final' for 'val' definitions</td> </tr>
+  <tr> <td>noFinalize</td><td>Boolean</td><td>false</td><td>Overriding finalize</td> </tr>
+  <tr> <td>noValPatterns</td><td>Boolean</td><td>false</td><td>pat. mat. in val assignment with non-tuple pat</td> </tr>
+  <tr> <td>noUniversalEquality</td><td>Boolean</td><td>false</td><td>Usage of `==` (universal equality)</td> </tr>
+  <tr> <td>noUniversalEqualityMessage</td><td>String</td><td>see below: 1</td><td>Reporter message for noUniversalEquality</td> </tr>
+  <tr> <td>regex</td><td>see below: 2</td><td>[]</td><td>When regex in source file matches</td> </tr>
+</table>
+
+.tiny-font[
+1.) "== and != are unsafe since they allow comparing two unrelated types"
+]
+.tiny-font[
+2.) List[CustomMessage[Either[Regex, Pattern]]]
+]
+
+---
+
+class: middle, center
+name: running_custom_rules
+
+# 7. Running (compiled) Custom Rules
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+.footnote[
+https://scalacenter.github.io/scalafix/docs/users/installation.html#run-custom-rules
+]
+
+---
+
+<br/>
+## Running (compiled) Custom Rules
+<br/>
+
+- *scalafix* comes with built-in rules (*RemoveUnused*, *ProcedureSyntax* etc.) which you can
+  run out of the box once *scalafix* is installed and set up correctly.
+
+- Additionally you can apply compiled rules published to Maven Central.
+
+- You can specify such a rules with *scalafixDependencies* analogously to *libraryDependencies*.
+
+### build.sbt
+
+```scala
+scalafixDependencies ++= Seq(
+  // for rules 'MissingFinal' and 'Disable'
+  // source at: https://github.com/vovapolu/scaluzzi
+  "com.github.vovapolu" %% "scaluzzi" % "0.1.2",
+),
+```
+
+---
+
+## Check rule *MissingFinal*
+
+If you have an ADT (sealed trait and derived case classes) in one source file,
+the case classes should carry a *final* modifier.
+
+--
+
+```scala
+  sealed trait MyADT extends Product with Serializable
+
+  case class Foo(s: String) extends MyADT    // <<--- missing final
+  case class Bar(i: Int) extends MyADT
+  case class Baz(b: Boolean) extends MyADT
+```
+
+--
+
+```html
+sbt:howto-scalafix-my-code> scalafix --check --stdout MissingFinal
+[info] Running scalafix ...
+--- .../howto-scalafix-my-code/src/main/scala/scaluzzi/ExampleMissingFinal.scala
++++ <expected fix>
+@@ -4,7 +4,7 @@
+ 
+     sealed trait MyADT extends Product with Serializable
+ 
+-    case class Foo(s: String) extends MyADT
+-    case class Bar(i: Int) extends MyADT
+-    case class Baz(b: Boolean) extends MyADT
++    final case class Foo(s: String) extends MyADT
++    final case class Bar(i: Int) extends MyADT
++    final case class Baz(b: Boolean) extends MyADT
+ }
+[error] (Compile / scalafix) scalafix.sbt.ScalafixFailed: TestError
+```
+
+---
+
+class: middle, center
+name: running_custom_rules_from_source
+
+# 8. Running Custom Rules from Source Code
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+.footnote[
+https://scalacenter.github.io/scalafix/docs/developers/tutorial.html#run-the-rule-from-source-code
+]
+
+---
+
+<br/>
+## Running Custom Rules from Source Code
+<br/>
+<br/>
+
+### scalafix --rules=[ source-url ]
+
+<br/>
+where source url can be:
+
+- a file url
+
+- a http/https url
+
+- a github repo
+
+---
+
+## Source Rule by file URL
+<br/>
+
+```html
+> scalafix --check --stdout --rules=file:./rule-files/MissingFinal.scala
+```
+
+--
+
+<br/>
+```html
+sbt:howto-scalafix-my-code> scalafix --check --stdout --rules=file:./rule-files/MissingFinal.scala
+[info] Running scalafix ...
+...
+--- .../howto-scalafix-my-code/src/main/scala/scaluzzi/ExampleMissingFinal.scala
++++ <expected fix>
+@@ -4,7 +4,7 @@
+ 
+     sealed trait MyADT extends Product with Serializable
+ 
+-    case class Foo(s: String) extends MyADT    // <<--- missing final
+-    case class Bar(i: Int) extends MyADT
+-    case class Baz(b: Boolean) extends MyADT
++    final case class Foo(s: String) extends MyADT    // <<--- missing final
++    final case class Bar(i: Int) extends MyADT
++    final case class Baz(b: Boolean) extends MyADT
+ }
+[error] (Compile / scalafix) scalafix.sbt.ScalafixFailed: TestError
+```
+
+---
+
+## Source Rule by HTTP URL
+<br/>
+
+```html
+> scalafix --check --stdout --rules=...
+  ...https://raw.githubusercontent.com/vovapolu/scaluzzi/master...
+  .../scalafix/rules/src/main/scala/scalafix/internal/scaluzzi/MissingFinal.scala
+```
+
+--
+
+<br/>
+```html
+sbt:howto-scalafix-my-code> scalafix --check --stdout --rules=https://raw.githubusercontent.com/vovapolu/scaluzzi/master/scalafix/rules/src/main/scala/scalafix/internal/scaluzzi/MissingFinal.scala
+[info] Running scalafix ...
+...
+--- .../howto-scalafix-my-code/src/main/scala/scaluzzi/ExampleMissingFinal.scala
++++ <expected fix>
+@@ -4,7 +4,7 @@
+ 
+     sealed trait MyADT extends Product with Serializable
+ 
+-    case class Foo(s: String) extends MyADT    // <<--- missing final
+-    case class Bar(i: Int) extends MyADT
+-    case class Baz(b: Boolean) extends MyADT
++    final case class Foo(s: String) extends MyADT    // <<--- missing final
++    final case class Bar(i: Int) extends MyADT
++    final case class Baz(b: Boolean) extends MyADT
+ }
+[error] (Compile / scalafix) scalafix.sbt.ScalafixFailed: TestError
+```
+
+---
+
+## Source Rule by github URL
+<br/>
+
+URL pattern:
+
+```html
+> scalafix --check --stdout --rules=github:[user]/[repo]/[rule-name]
+```
+
+This expects the rule source file to be located in the package *fix* under *scalafix/rules/src/main/scala*
+
+--
+
+<br/>
+```html
+> scalafix --check --stdout --rules=github:vovapolu/scaluzzi/MissingFinal
+
+[error] (Compile / scalafix) scalafix.sbt.InvalidArgument: 404 - not found ...
+   ...https://raw.githubusercontent.com/vovapolu/scaluzzi...
+   .../master/scalafix/rules/src/main/scala/fix/MissingFinal.scala
+```
+
+The rule *MissingFinal* is not located at the standard location and therefore not found using the github URL.
+
+---
+
+<br/>
+## Upgrade your *cats* code ...
+<br/>
+... from *cats-0.9.0* to *cats-1.0.0*:
+
+<br/>
+```html
+sbt scalafix github:typelevel/cats/v1.0.0
+```
+
+.footnote[
+Scalafix rules for cats:
+]
+.footnote2[
+https://github.com/typelevel/cats/tree/master/scalafix
+]
+
+---
+
+## Pros and Cons
+<br/>
+
+### <u>Pros</u>
+
+- avoids the effort to publish the rule to Maven Central or Sonatype
+
+- more flexible during development and test
+
+### <u>Cons</u>
+
+- Inflexible. Rules must be implemented in a single source file.
+
+- No dependencies. Rules can only use the Scalafix public API.
+
+- Slow. Rule is re-compiled on every invocation so it's not great for interactive usage.
+
+- No tab completion in the sbt shell. Users need to manually type the path to the source file.
+
+---
+
+<br/>
+<br/>
+<br/>
+## How to write your own rules
+<br/>
+<br/>
+<br/>
+<br/>
+
+Scalafix developers guide:
+
+https://scalacenter.github.io/scalafix/docs/developers/setup.html
+
+
+---
+
+class: middle, center
+name: resources
+
+# 9. Resources
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+---
+
+<br/>
+## Resources
+<br/>
+
+- Code and Slides of this Talk:<br/>
+  https://github.com/hermannhueck/howto-scalafix-my-code
+
+- Scalafix Home/Docs:<br/>
+  https://scalacenter.github.io/scalafix/
+
+- Scalafix on Github:<br/>
+  https://github.com/scalacenter/scalafix  
+
+- Refactoring with scalafix and scala.meta<br/>
+  Talk by Ólafur Páll Geirsson at ScalaSphere 2017<br/>
+  https://www.youtube.com/watch?v=7I18pJ6orrI
+
+- Scalafix Workshop by Gabriele Petronella at Scala World 2017<br/>
+  https://www.youtube.com/watch?v=uaMWvkCJM_E
+
+---
+
+class: middle, center
+
+# Thank You
+<br/>
+<br/>
+<br/>
+
+# Q &amp; A
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+https://github.com/hermannhueck/howto-scalafix-my-code
+
+
+</textarea>
+
+    <script src="remark-latest.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create({
+        // sourceUrl: 'some-source.md',
+
+        // Set the slideshow display ratio
+        // Default: '4:3'
+        // Alternatives: '16:9', ...
+        ratio: '4:3',
+
+        // Navigation options
+        navigation: {
+          // Enable or disable navigating using scroll
+          // Default: true
+          // Alternatives: false
+          scroll: false,
+
+          // Enable or disable navigation using touch
+          // Default: true
+          // Alternatives: false
+          touch: true,
+
+          // Enable or disable navigation using click
+          // Default: false
+          // Alternatives: true
+          click: false
+        },
+
+        // Enable or disable counting of incremental slides in the slide counting
+        countIncrementalSlides: true
+      });
+    </script>
+  </body>
+</html>
