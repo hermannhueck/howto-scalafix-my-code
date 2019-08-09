@@ -1,4 +1,4 @@
-# Learning Scalafix
+# How to scalafix my code
   
 This presentation with code examples gives an introduction to Scalafix.
 
