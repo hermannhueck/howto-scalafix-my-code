@@ -18,3 +18,6 @@ It has been developed with Scala 2.12.8, sbt 1.2.8 and scalafix 0.9.5.
 
 - Scalafix Workshop by Gabriele Petronella at Scala World 2017<br/>
   https://www.youtube.com/watch?v=uaMWvkCJM_E
+
+- DevInsideYou: Getting started with #Scalafix<br/>
+  https://www.youtube.com/watch?v=Xl8oOmFNGgQ
