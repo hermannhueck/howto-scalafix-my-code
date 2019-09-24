@@ -6,6 +6,7 @@ inThisBuild(
     scalaVersion := "2.13.1",
     version := "0.1.0-SNAPSHOT",
     scalafixDependencies ++= Seq(
+      // "com.geirsson" %% "example-scalafix-rule" % "1.3.0",
       "com.github.vovapolu" %% "scaluzzi" % "0.1.2" // for rules 'MissingFinal' and 'Disable'
     ),
     publish / skip := true,
