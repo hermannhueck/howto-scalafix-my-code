@@ -5,7 +5,7 @@ import scala.util.Try
 object Throwing extends App {
 
   implicit class StringOps(private val s: String) {
-    def myToIntOption: Option[Int] = Try(s.toInt).toOption
+    def toMaybeInt: Option[Int] = Try(s.toInt).toOption
   }
 
   def checkNumber(string: String): Unit = {
@@ -15,7 +15,7 @@ object Throwing extends App {
     } else {
 
       // scalafix:off
-      val num = string.myToIntOption match {
+      val num = string.toMaybeInt match {
         case None      => throw new NumberFormatException("not an Int")
         case Some(int) => int
       }
