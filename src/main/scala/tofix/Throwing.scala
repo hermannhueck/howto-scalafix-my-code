@@ -5,8 +5,8 @@ import scala.util.Try
 object Throwing extends App {
 
   implicit class StringOps(private val s: String) {
-    def toIntOption: Option[Int] = Try(s.toInt).toOption
-  }  
+    def myToIntOption: Option[Int] = Try(s.toInt).toOption
+  }
 
   def checkNumber(string: String): Unit = {
 
@@ -15,8 +15,8 @@ object Throwing extends App {
     } else {
 
       // scalafix:off
-      val num = string.toIntOption match {
-        case None => throw new NumberFormatException("not an Int")
+      val num = string.myToIntOption match {
+        case None      => throw new NumberFormatException("not an Int")
         case Some(int) => int
       }
 
@@ -29,13 +29,13 @@ object Throwing extends App {
     }
   }
 
-@SuppressWarnings(Array("scalafix:DisableSyntax.throw"))
-def run(args: List[String]) =
-  if (args.length == 0) {
-    throw new IllegalArgumentException("no args specified")
-  } else {
-    checkNumber(args.head)
-  }
+  @SuppressWarnings(Array("scalafix:DisableSyntax.throw"))
+  def run(args: List[String]) =
+    if (args.length == 0) {
+      throw new IllegalArgumentException("no args specified")
+    } else {
+      checkNumber(args.head)
+    }
 
   run(args.toList)
 }
